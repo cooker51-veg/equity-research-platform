@@ -27,7 +27,7 @@ import datetime
 
 # ── Page config (must be first Streamlit call) ──────────────────────────────
 st.set_page_config(
-    page_title="Equity Research Platform",
+    page_title="Aryan's Equity Research Platform",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -397,10 +397,10 @@ def render_sidebar():
         st.markdown("""
         <div style="padding: 1rem 0 0.5rem 0;">
             <div style="font-size:1.1rem; font-weight:700; color:#f0f4ff; letter-spacing:-0.02em;">
-                📊 Equity Research
+                📊 Aryan's Equity Research Platform Hehe
             </div>
             <div style="font-size:0.72rem; color:#8b9cb8; margin-top:0.2rem;">
-                Aryan's Research Platform
+                Equity Research Made Easy
             </div>
         </div>
         <hr style="border-color:#1e2d4a; margin:0.5rem 0 1rem 0;">
