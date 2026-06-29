@@ -400,7 +400,7 @@ def render_sidebar():
                 📊 Equity Research
             </div>
             <div style="font-size:0.72rem; color:#8b9cb8; margin-top:0.2rem;">
-                AI-ASSISTED PLATFORM
+                Aryan's Research Platform
             </div>
         </div>
         <hr style="border-color:#1e2d4a; margin:0.5rem 0 1rem 0;">
