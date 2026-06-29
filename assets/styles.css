@@ -1,0 +1,23 @@
+/* Institutional Dark Theme - Equity Research Platform */
+
+/* Base */
+:root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #0f1629;
+    --bg-card: #131c32;
+    --bg-card-hover: #1a2540;
+    --accent-gold: #c9a84c;
+    --accent-gold-light: #e8c87a;
+    --accent-blue: #2563eb;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --text-primary: #f0f4ff;
+    --text-secondary: #8b9cb8;
+    --text-muted: #4a5568;
+    --border: #1e2d4a;
+    --border-accent: #2a3f6a;
+}
+
+.stApp {
+    background-color: #0a0e1a;
+}
