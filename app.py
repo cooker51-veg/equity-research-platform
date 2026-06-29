@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'About': "AI-Assisted Equity Research Platform | Educational Use Only"
+        'About': ""
     }
 )
 
@@ -313,7 +313,7 @@ def render_sidebar():
                 📊 Aryan's Equity Research
             </div>
             <div style="font-size:0.72rem; color:#c9a84c; margin-top:0.2rem; font-weight:600;">
-                AI-ASSISTED PLATFORM
+                hehehehe
             </div>
         </div>
         <hr style="border-color:#1e2d4a; margin:0.5rem 0 1rem 0;">
