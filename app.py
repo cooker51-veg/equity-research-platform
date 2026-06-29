@@ -3,17 +3,6 @@ AI-Assisted Equity Research Platform
 =====================================
 Production-ready institutional equity research tool.
 Supports NSE / BSE / US tickers.
-
-Modules:
-  1. Company Overview
-  2. Financial Analysis Engine
-  3. DCF Valuation Engine
-  4. Comparable Company Analysis
-  5. AI Research Engine
-  6. Investment Memo Generator
-  7. PDF Export
-
-Author: AI-Assisted Equity Research Platform
 """
 
 import streamlit as st
@@ -25,7 +14,6 @@ import time
 import traceback
 import datetime
 
-# ── Page config (must be first Streamlit call) ──────────────────────────────
 st.set_page_config(
     page_title="Aryan's Equity Research Platform",
     page_icon="📊",
@@ -36,7 +24,6 @@ st.set_page_config(
     }
 )
 
-# ── Path setup ──────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
 
 from utils.data_fetcher import (
@@ -53,46 +40,60 @@ from modules.ai_research import get_client, build_context, run_ai_analysis, gene
 from modules.pdf_generator import generate_pdf_report
 
 
-# ── Global styling ──────────────────────────────────────────────────────────
 def inject_css():
     st.markdown("""
     <style>
-    /* Import Inter font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* Root overrides */
     html, body, [class*="css"] {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* Dark background */
     .stApp {
         background: #0a0e1a;
         color: #f0f4ff;
     }
 
-    /* Main content area */
     .main .block-container {
         background: #0a0e1a;
         padding: 1.5rem 2rem;
         max-width: 1400px;
     }
 
-    /* Sidebar */
+    /* ── SIDEBAR: always open, collapse button hidden ── */
     [data-testid="stSidebar"] {
         background: #0c1020 !important;
         border-right: 1px solid #1e2d4a;
+        min-width: 280px !important;
+        max-width: 280px !important;
+        width: 280px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        display: block !important;
     }
     [data-testid="stSidebar"] .block-container {
         background: #0c1020 !important;
     }
+    [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    [data-testid="collapsedControl"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    button[kind="header"] {
+        display: none !important;
+    }
+    section[data-testid="stSidebar"] > div:first-child > div:first-child button {
+        display: none !important;
+    }
 
-    /* Hide default header */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
 
-    /* Metrics */
     [data-testid="stMetric"] {
         background: #131c32;
         border: 1px solid #1e2d4a;
@@ -115,7 +116,6 @@ def inject_css():
         font-size: 0.78rem !important;
     }
 
-    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         background: #0c1020;
         border-bottom: 1px solid #1e2d4a;
@@ -137,7 +137,6 @@ def inject_css():
         background: transparent !important;
     }
 
-    /* Buttons */
     .stButton > button {
         background: #c9a84c;
         color: #0a0e1a;
@@ -154,7 +153,6 @@ def inject_css():
         color: #0a0e1a;
     }
 
-    /* Download button */
     [data-testid="stDownloadButton"] > button {
         background: #131c32;
         color: #c9a84c;
@@ -168,19 +166,14 @@ def inject_css():
         color: #0a0e1a;
     }
 
-    /* Sliders */
-    .stSlider [data-baseweb="slider"] {
-        padding-top: 0.5rem;
-    }
+    .stSlider [data-baseweb="slider"] { padding-top: 0.5rem; }
 
-    /* Select boxes */
     .stSelectbox [data-baseweb="select"] {
         background: #131c32;
         border: 1px solid #1e2d4a;
         border-radius: 6px;
     }
 
-    /* Text input */
     .stTextInput > div > div > input {
         background: #131c32;
         border: 1px solid #1e2d4a;
@@ -193,16 +186,8 @@ def inject_css():
         box-shadow: 0 0 0 1px #c9a84c20;
     }
 
-    /* Tables */
-    .stDataFrame {
-        border: 1px solid #1e2d4a;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    .stDataFrame table {
-        background: #0f1629;
-        color: #f0f4ff;
-    }
+    .stDataFrame { border: 1px solid #1e2d4a; border-radius: 8px; overflow: hidden; }
+    .stDataFrame table { background: #0f1629; color: #f0f4ff; }
     .stDataFrame thead th {
         background: #0f1629 !important;
         color: #c9a84c !important;
@@ -212,11 +197,8 @@ def inject_css():
         border-bottom: 1px solid #1e2d4a;
         font-weight: 600;
     }
-    .stDataFrame tbody tr:nth-of-type(even) {
-        background: #131c32 !important;
-    }
+    .stDataFrame tbody tr:nth-of-type(even) { background: #131c32 !important; }
 
-    /* Expander */
     .streamlit-expanderHeader {
         background: #131c32;
         border: 1px solid #1e2d4a;
@@ -225,18 +207,9 @@ def inject_css():
         font-size: 0.82rem !important;
     }
 
-    /* Info/Warning boxes */
-    .stAlert {
-        border-radius: 6px;
-        font-size: 0.83rem;
-    }
+    .stAlert { border-radius: 6px; font-size: 0.83rem; }
+    hr { border-color: #1e2d4a; }
 
-    /* Section divider */
-    hr {
-        border-color: #1e2d4a;
-    }
-
-    /* Custom card */
     .er-card {
         background: #131c32;
         border: 1px solid #1e2d4a;
@@ -245,98 +218,48 @@ def inject_css():
         margin-bottom: 1rem;
     }
     .er-card-title {
-        font-size: 0.72rem;
-        color: #8b9cb8;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-weight: 600;
-        margin-bottom: 0.4rem;
+        font-size: 0.72rem; color: #8b9cb8;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        font-weight: 600; margin-bottom: 0.4rem;
     }
-    .er-kpi-val {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #f0f4ff;
-        line-height: 1.1;
-    }
-    .er-kpi-sub {
-        font-size: 0.78rem;
-        color: #8b9cb8;
-        margin-top: 0.2rem;
-    }
+    .er-kpi-val { font-size: 1.6rem; font-weight: 700; color: #f0f4ff; line-height: 1.1; }
+    .er-kpi-sub { font-size: 0.78rem; color: #8b9cb8; margin-top: 0.2rem; }
     .er-section-header {
-        font-size: 0.7rem;
-        color: #c9a84c;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        font-weight: 700;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #1e2d4a;
-        margin-bottom: 1rem;
+        font-size: 0.7rem; color: #c9a84c;
+        text-transform: uppercase; letter-spacing: 0.15em;
+        font-weight: 700; padding-bottom: 0.5rem;
+        border-bottom: 1px solid #1e2d4a; margin-bottom: 1rem;
     }
     .er-badge-buy {
-        display: inline-block;
-        background: #10b981;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        display: inline-block; background: #10b981; color: white;
+        padding: 0.25rem 0.75rem; border-radius: 4px;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
     }
     .er-badge-hold {
-        display: inline-block;
-        background: #c9a84c;
-        color: #0a0e1a;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        display: inline-block; background: #c9a84c; color: #0a0e1a;
+        padding: 0.25rem 0.75rem; border-radius: 4px;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
     }
     .er-badge-sell {
-        display: inline-block;
-        background: #ef4444;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-    }
-    .er-platform-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 0 1.5rem 0;
-        border-bottom: 1px solid #1e2d4a;
-        margin-bottom: 1.5rem;
+        display: inline-block; background: #ef4444; color: white;
+        padding: 0.25rem 0.75rem; border-radius: 4px;
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
     }
     .er-disclaimer {
-        background: #0c1020;
-        border: 1px solid #1e2d4a;
-        border-radius: 6px;
-        padding: 0.6rem 1rem;
-        font-size: 0.72rem;
-        color: #4a5568;
-        margin-top: 1rem;
+        background: #0c1020; border: 1px solid #1e2d4a;
+        border-radius: 6px; padding: 0.6rem 1rem;
+        font-size: 0.72rem; color: #4a5568; margin-top: 1rem;
     }
     .er-ai-label {
-        display: inline-block;
-        background: #2563eb20;
-        color: #60a5fa;
-        border: 1px solid #2563eb40;
-        padding: 0.1rem 0.5rem;
-        border-radius: 3px;
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        margin-bottom: 0.5rem;
+        display: inline-block; background: #2563eb20; color: #60a5fa;
+        border: 1px solid #2563eb40; padding: 0.1rem 0.5rem;
+        border-radius: 3px; font-size: 0.68rem; font-weight: 600;
+        letter-spacing: 0.06em; margin-bottom: 0.5rem;
     }
     </style>
     """, unsafe_allow_html=True)
 
 
-# ── Formatting helpers ───────────────────────────────────────────────────────
 def fmt_inr(val, divisor=1e7, decimals=0, suffix=' Cr'):
     if val is None or (isinstance(val, float) and np.isnan(val)):
         return 'N/A'
@@ -369,38 +292,28 @@ def delta_color(val):
     return "off"
 
 
-# ── Session state init ───────────────────────────────────────────────────────
 def init_state():
     defaults = {
-        'data': None,
-        'metrics': None,
-        'ratios': None,
-        'wacc_data': None,
-        'dcf_result': None,
-        'peer_df': None,
-        'ticker_symbol': None,
-        'company_name': '',
-        'memo_text': '',
-        'recommendation': 'HOLD',
-        'analysis_done': False,
-        'last_ticker': '',
-        'ai_sections': {},
+        'data': None, 'metrics': None, 'ratios': None,
+        'wacc_data': None, 'dcf_result': None, 'peer_df': None,
+        'ticker_symbol': None, 'company_name': '', 'memo_text': '',
+        'recommendation': 'HOLD', 'analysis_done': False,
+        'last_ticker': '', 'ai_sections': {},
     }
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
 
 
-# ── Sidebar ──────────────────────────────────────────────────────────────────
 def render_sidebar():
     with st.sidebar:
         st.markdown("""
         <div style="padding: 1rem 0 0.5rem 0;">
             <div style="font-size:1.1rem; font-weight:700; color:#f0f4ff; letter-spacing:-0.02em;">
-                📊 Aryan's Equity Research Platform Hehe
+                📊 Aryan's Equity Research
             </div>
-            <div style="font-size:0.72rem; color:#8b9cb8; margin-top:0.2rem;">
-                Equity Research Made Easy
+            <div style="font-size:0.72rem; color:#c9a84c; margin-top:0.2rem; font-weight:600;">
+                AI-ASSISTED PLATFORM
             </div>
         </div>
         <hr style="border-color:#1e2d4a; margin:0.5rem 0 1rem 0;">
@@ -409,11 +322,9 @@ def render_sidebar():
         st.markdown('<div style="font-size:0.72rem; color:#8b9cb8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">Company Search</div>', unsafe_allow_html=True)
 
         ticker_input = st.text_input(
-            "Ticker / Company",
-            value="TRENT",
+            "Ticker / Company", value="TRENT",
             placeholder="e.g. TRENT, POLYCAB, DIXON...",
-            label_visibility="collapsed",
-            key="ticker_input_box"
+            label_visibility="collapsed", key="ticker_input_box"
         )
 
         col1, col2 = st.columns(2)
@@ -422,7 +333,6 @@ def render_sidebar():
         with col2:
             analyze_btn = st.button("Analyse →", use_container_width=True)
 
-        # Quick picks
         st.markdown('<div style="font-size:0.68rem; color:#4a5568; margin-top:0.8rem; margin-bottom:0.3rem;">QUICK PICKS</div>', unsafe_allow_html=True)
         quick_cols = st.columns(2)
         quick_tickers = ['TRENT', 'POLYCAB', 'DIXON', 'ICICIBANK', 'INFY', 'RELIANCE']
@@ -433,8 +343,6 @@ def render_sidebar():
                     st.rerun()
 
         st.markdown('<hr style="border-color:#1e2d4a; margin:1rem 0;">', unsafe_allow_html=True)
-
-        # DCF Assumption overrides
         st.markdown('<div style="font-size:0.72rem; color:#c9a84c; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">DCF Assumptions</div>', unsafe_allow_html=True)
 
         rev_growth = st.slider("Rev Growth Phase 1 (%)", 3.0, 40.0, 15.0, 0.5, key='rev_growth_s') / 100
@@ -442,15 +350,11 @@ def render_sidebar():
         forecast_years = st.slider("Forecast Years", 3, 10, 5, 1, key='fy_s')
 
         st.markdown('<hr style="border-color:#1e2d4a; margin:1rem 0;">', unsafe_allow_html=True)
-
-        # API Key
         st.markdown('<div style="font-size:0.72rem; color:#8b9cb8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">AI Configuration</div>', unsafe_allow_html=True)
+
         api_key_input = st.text_input(
-            "Anthropic API Key",
-            type="password",
-            placeholder="sk-ant-...",
-            label_visibility="collapsed",
-            key="api_key_input"
+            "Anthropic API Key", type="password",
+            placeholder="sk-ant-...", label_visibility="collapsed", key="api_key_input"
         )
         if api_key_input:
             os.environ['ANTHROPIC_API_KEY'] = api_key_input
@@ -474,7 +378,6 @@ def render_sidebar():
     return ticker_input, exchange_hint, analyze_btn, rev_growth, terminal_growth, forecast_years
 
 
-# ── Platform header ──────────────────────────────────────────────────────────
 def render_platform_header(info: dict):
     company_name = info.get('longName', info.get('shortName', '—'))
     ticker = info.get('symbol', '')
@@ -511,11 +414,9 @@ def render_platform_header(info: dict):
     """, unsafe_allow_html=True)
 
 
-# ── Tab 1: Company Overview ──────────────────────────────────────────────────
 def render_overview(info: dict, history):
     st.markdown('<div class="er-section-header">Company Overview</div>', unsafe_allow_html=True)
 
-    # Core KPIs
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     price = info.get('currentPrice') or info.get('regularMarketPrice')
     mktcap = info.get('marketCap')
@@ -544,8 +445,6 @@ def render_overview(info: dict, history):
         st.metric("Div Yield", fmt_num(div_yield, suffix='%', decimals=2) if div_yield else "N/A")
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Valuation multiples
     st.markdown('<div class="er-section-header">Valuation Multiples</div>', unsafe_allow_html=True)
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
@@ -561,18 +460,15 @@ def render_overview(info: dict, history):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Price chart
     if history is not None and not history.empty:
         st.plotly_chart(price_chart(history, info), use_container_width=True, config={'displayModeBar': False})
 
-    # Business description
     description = info.get('longBusinessSummary', '')
     if description:
         st.markdown('<div class="er-section-header">Business Description</div>', unsafe_allow_html=True)
         with st.expander("View Business Description", expanded=True):
             st.markdown(f'<div style="font-size:0.85rem; color:#c8d3e6; line-height:1.7;">{description}</div>', unsafe_allow_html=True)
 
-    # Company details table
     st.markdown('<div class="er-section-header">Company Details</div>', unsafe_allow_html=True)
     details = {
         'Full Name': info.get('longName', 'N/A'),
@@ -589,11 +485,9 @@ def render_overview(info: dict, history):
     st.dataframe(details_df, hide_index=True, use_container_width=True)
 
 
-# ── Tab 2: Financial Analysis ────────────────────────────────────────────────
 def render_financials(metrics: dict, ratios: dict, info: dict):
     st.markdown('<div class="er-section-header">Financial Performance Summary</div>', unsafe_allow_html=True)
 
-    # Top CAGR metrics
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
         rev = metrics.get('revenue', [])
@@ -626,7 +520,6 @@ def render_financials(metrics: dict, ratios: dict, info: dict):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Charts
     col_l, col_r = st.columns(2)
     with col_l:
         st.plotly_chart(revenue_chart(metrics), use_container_width=True, config={'displayModeBar': False})
@@ -639,7 +532,6 @@ def render_financials(metrics: dict, ratios: dict, info: dict):
     with col_r:
         st.plotly_chart(fcf_chart(metrics), use_container_width=True, config={'displayModeBar': False})
 
-    # Historical financials table
     st.markdown('<div class="er-section-header">Historical Income Statement (₹ Crores)</div>', unsafe_allow_html=True)
     years = metrics.get('years', [])
     rev_list = [v/1e7 for v in metrics.get('revenue', [])]
@@ -650,15 +542,6 @@ def render_financials(metrics: dict, ratios: dict, info: dict):
     fcf_list = [v/1e7 for v in metrics.get('free_cash_flow', [])]
     capex_list = [v/1e7 for v in metrics.get('capex', [])]
 
-    def margin_list(num, den):
-        result = []
-        for n, d in zip(num, den):
-            if d and abs(d) > 0:
-                result.append(f"{n/d*100:.1f}%")
-            else:
-                result.append('N/A')
-        return result
-
     table_data = {
         'Metric': ['Revenue', 'YoY Growth', 'EBITDA', 'EBITDA Margin', 'EBIT', 'EBIT Margin',
                    'Net Income', 'Net Margin', 'Operating CF', 'Capex', 'Free Cash Flow'],
@@ -667,14 +550,12 @@ def render_financials(metrics: dict, ratios: dict, info: dict):
     for i, yr in enumerate(years):
         vals = []
         vals.append(f"₹{rev_list[i]:,.0f}" if i < len(rev_list) else 'N/A')
-        # YoY
         if i > 0 and i < len(rev_list) and rev_list[i-1] and abs(rev_list[i-1]) > 0:
             g = (rev_list[i] - rev_list[i-1]) / abs(rev_list[i-1]) * 100
             vals.append(f"{g:+.1f}%")
         else:
             vals.append('—')
         vals.append(f"₹{ebitda_list[i]:,.0f}" if i < len(ebitda_list) else 'N/A')
-        # EBITDA Margin
         if i < len(rev_list) and rev_list[i] and rev_list[i] > 0:
             vals.append(f"{ebitda_list[i]/rev_list[i]*100:.1f}%")
         else:
@@ -698,7 +579,6 @@ def render_financials(metrics: dict, ratios: dict, info: dict):
     st.dataframe(fin_df, hide_index=True, use_container_width=True)
 
 
-# ── Tab 3: DCF Valuation ────────────────────────────────────────────────────
 def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
     if not dcf_result or 'error' in dcf_result:
         st.error(f"DCF Error: {dcf_result.get('error', 'Unable to run DCF model. Insufficient financial data.')}")
@@ -706,15 +586,12 @@ def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
 
     st.markdown('<div class="er-section-header">DCF Valuation — FCFF Model</div>', unsafe_allow_html=True)
 
-    # Valuation summary KPIs
     c1, c2, c3, c4, c5 = st.columns(5)
     ev = dcf_result.get('enterprise_value', 0)
     eq_val = dcf_result.get('equity_value', 0)
     pv_tv = dcf_result.get('pv_terminal', 0)
     sum_pv = dcf_result.get('sum_pv_fcffs', 0)
     net_debt = dcf_result.get('net_debt', 0)
-    shares = info.get('sharesOutstanding') or info.get('impliedSharesOutstanding')
-    price = info.get('currentPrice') or info.get('regularMarketPrice')
 
     with c1:
         st.metric("Enterprise Value (DCF)", fmt_inr(ev))
@@ -729,8 +606,6 @@ def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
         st.metric("Terminal Value %", f"{tv_pct:.1f}%", help="% of EV from terminal value (typically 60-80%)")
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # WACC breakdown
     st.markdown('<div class="er-section-header">WACC Assumptions</div>', unsafe_allow_html=True)
     wc1, wc2, wc3, wc4, wc5, wc6 = st.columns(6)
     with wc1:
@@ -748,14 +623,12 @@ def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Charts
     col_l, col_r = st.columns(2)
     with col_l:
         st.plotly_chart(dcf_projection_chart(dcf_result), use_container_width=True, config={'displayModeBar': False})
     with col_r:
         st.plotly_chart(valuation_waterfall(dcf_result), use_container_width=True, config={'displayModeBar': False})
 
-    # Projection table
     st.markdown('<div class="er-section-header">DCF Projection Detail (₹ Crores)</div>', unsafe_allow_html=True)
     proj_data = {
         'Year': dcf_result['years'],
@@ -773,7 +646,6 @@ def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
     }
     st.dataframe(pd.DataFrame(proj_data), hide_index=True, use_container_width=True)
 
-    # Sensitivity
     st.markdown('<div class="er-section-header" style="margin-top:1.5rem;">Sensitivity Analysis — Equity Value (₹ Cr) | WACC vs Terminal Growth Rate</div>', unsafe_allow_html=True)
     st.markdown('<div style="font-size:0.75rem; color:#8b9cb8; margin-bottom:0.5rem;">Green = Higher equity value. Red = Lower equity value.</div>', unsafe_allow_html=True)
     try:
@@ -785,7 +657,6 @@ def render_dcf(dcf_result: dict, wacc_data: dict, info: dict, metrics: dict):
         st.warning(f"Sensitivity analysis could not be computed: {e}")
 
 
-# ── Tab 4: Peer Comparables ──────────────────────────────────────────────────
 def render_peers(peer_df: pd.DataFrame, info: dict):
     st.markdown('<div class="er-section-header">Comparable Company Analysis</div>', unsafe_allow_html=True)
 
@@ -793,7 +664,6 @@ def render_peers(peer_df: pd.DataFrame, info: dict):
         st.warning("No peer data available. Peer comparison requires valid ticker data.")
         return
 
-    # Summary stats
     pe_vals = peer_df['P/E (x)'].dropna()
     ev_vals = peer_df['EV/EBITDA (x)'].dropna()
     pb_vals = peer_df['P/B (x)'].dropna()
@@ -815,49 +685,35 @@ def render_peers(peer_df: pd.DataFrame, info: dict):
             st.metric("P/E Premium to Peers", "N/A")
 
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Chart
     st.plotly_chart(peer_multiples_chart(peer_df), use_container_width=True, config={'displayModeBar': False})
 
-    # Table
     st.markdown('<div class="er-section-header">Peer Multiples Table</div>', unsafe_allow_html=True)
     display_df = peer_df.copy()
     for col in ['P/E (x)', 'P/B (x)', 'EV/EBITDA (x)', 'EV/Revenue (x)']:
         if col in display_df.columns:
-            display_df[col] = display_df[col].apply(
-                lambda x: f"{x:.1f}x" if pd.notna(x) else 'N/A'
-            )
+            display_df[col] = display_df[col].apply(lambda x: f"{x:.1f}x" if pd.notna(x) else 'N/A')
     if 'Mkt Cap (Cr)' in display_df.columns:
-        display_df['Mkt Cap (Cr)'] = display_df['Mkt Cap (Cr)'].apply(
-            lambda x: f"₹{x:,.0f}" if pd.notna(x) else 'N/A'
-        )
+        display_df['Mkt Cap (Cr)'] = display_df['Mkt Cap (Cr)'].apply(lambda x: f"₹{x:,.0f}" if pd.notna(x) else 'N/A')
     st.dataframe(display_df, hide_index=True, use_container_width=True)
 
     st.markdown("""
     <div class="er-disclaimer">
-    ⚠ Comparable company analysis is based on trailing twelve months (TTM) multiples sourced from Yahoo Finance.
-    Peer group is auto-selected based on sector/industry. Manual override recommended for precision analysis.
-    Multiples are point-in-time and may not reflect normalized earnings.
+    ⚠ Comparable company analysis is based on TTM multiples sourced from Yahoo Finance.
+    Peer group is auto-selected based on sector/industry. Multiples are point-in-time.
     </div>
     """, unsafe_allow_html=True)
 
 
-# ── Tab 5: AI Research ───────────────────────────────────────────────────────
 def render_ai_research(info: dict, metrics: dict, ratios: dict):
     st.markdown('<div class="er-ai-label">AI-ASSISTED ANALYSIS — ANTHROPIC CLAUDE</div>', unsafe_allow_html=True)
     st.markdown('<div class="er-section-header">AI Research Engine</div>', unsafe_allow_html=True)
 
     client = get_client()
     if client is None:
-        st.warning("""
-        **AI Engine not active.** Enter your Anthropic API key in the sidebar to enable AI-assisted analysis.
-        
-        Get your key at: https://console.anthropic.com
-        """)
+        st.warning("**AI Engine not active.** Enter your Anthropic API key in the sidebar.\n\nGet your key at: https://console.anthropic.com")
         return
 
     context = build_context(info, metrics, ratios)
-
     analysis_options = {
         'Business Model & Competitive Position': 'business_model',
         'Investment Thesis (Bull & Bear)': 'investment_thesis',
@@ -867,17 +723,12 @@ def render_ai_research(info: dict, metrics: dict, ratios: dict):
 
     col_l, col_r = st.columns([1, 3])
     with col_l:
-        selected_analysis = st.radio(
-            "Select Analysis",
-            list(analysis_options.keys()),
-            label_visibility="collapsed",
-        )
+        selected_analysis = st.radio("Select Analysis", list(analysis_options.keys()), label_visibility="collapsed")
 
     analysis_key = analysis_options[selected_analysis]
 
     with col_r:
         cache_key = f"ai_{analysis_key}_{info.get('symbol', '')}"
-
         if cache_key not in st.session_state['ai_sections']:
             if st.button(f"Generate: {selected_analysis}", key=f"gen_{analysis_key}"):
                 with st.spinner("Generating AI analysis..."):
@@ -893,22 +744,11 @@ def render_ai_research(info: dict, metrics: dict, ratios: dict):
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.markdown(f"""
-            <div style="color:#4a5568; font-size:0.82rem; padding:1rem 0;">
-            Click 'Generate' to run AI analysis for: <strong>{selected_analysis}</strong>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f'<div style="color:#4a5568; font-size:0.82rem; padding:1rem 0;">Click Generate to run: <strong>{selected_analysis}</strong></div>', unsafe_allow_html=True)
 
-    st.markdown("""
-    <div class="er-disclaimer">
-    ⚠ AI-generated analysis is produced by Anthropic Claude. It is based solely on data provided and publicly available information.
-    The AI is instructed not to fabricate financial data, events, or specific figures. All AI outputs should be independently verified.
-    This analysis does not constitute investment advice.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="er-disclaimer">⚠ AI-generated analysis is produced by Anthropic Claude based on available data only. Not investment advice.</div>', unsafe_allow_html=True)
 
 
-# ── Tab 6: Investment Memo ───────────────────────────────────────────────────
 def render_memo(info: dict, metrics: dict, ratios: dict, dcf_result: dict, peer_df: pd.DataFrame):
     st.markdown('<div class="er-ai-label">AI-ASSISTED ANALYSIS — ANTHROPIC CLAUDE</div>', unsafe_allow_html=True)
     st.markdown('<div class="er-section-header">Investment Memo Generator</div>', unsafe_allow_html=True)
@@ -929,7 +769,6 @@ def render_memo(info: dict, metrics: dict, ratios: dict, dcf_result: dict, peer_
 
     if st.session_state.get('memo_text'):
         memo_text = st.session_state['memo_text']
-
         rec_badge = {
             'BUY': '<span class="er-badge-buy">BUY</span>',
             'ADD': '<span class="er-badge-buy">ADD</span>',
@@ -937,7 +776,6 @@ def render_memo(info: dict, metrics: dict, ratios: dict, dcf_result: dict, peer_
             'REDUCE': '<span class="er-badge-sell">REDUCE</span>',
             'SELL': '<span class="er-badge-sell">SELL</span>',
         }.get(rec, '')
-
         st.markdown(f"""
         <div class="er-card">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
@@ -949,7 +787,6 @@ def render_memo(info: dict, metrics: dict, ratios: dict, dcf_result: dict, peer_
         """, unsafe_allow_html=True)
 
 
-# ── Tab 7: PDF Export ────────────────────────────────────────────────────────
 def render_pdf_export(info: dict, metrics: dict, ratios: dict, dcf_result: dict, peer_df: pd.DataFrame):
     st.markdown('<div class="er-section-header">PDF Report Export</div>', unsafe_allow_html=True)
 
@@ -978,8 +815,7 @@ def render_pdf_export(info: dict, metrics: dict, ratios: dict, dcf_result: dict,
     col1, col2 = st.columns(2)
     with col1:
         rec_select = st.selectbox("Rating for Report", ['BUY', 'ADD', 'HOLD', 'REDUCE', 'SELL'],
-                                   index=['BUY', 'ADD', 'HOLD', 'REDUCE', 'SELL'].index(rec),
-                                   key='pdf_rec')
+                                   index=['BUY', 'ADD', 'HOLD', 'REDUCE', 'SELL'].index(rec), key='pdf_rec')
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -987,23 +823,16 @@ def render_pdf_export(info: dict, metrics: dict, ratios: dict, dcf_result: dict,
         with st.spinner("Generating institutional PDF report..."):
             try:
                 pdf_bytes = generate_pdf_report(
-                    info=info,
-                    metrics=metrics,
-                    ratios=ratios,
+                    info=info, metrics=metrics, ratios=ratios,
                     dcf_result=dcf_result or {},
                     peer_df=peer_df if peer_df is not None else pd.DataFrame(),
-                    memo_text=memo_text,
-                    recommendation=rec_select,
+                    memo_text=memo_text, recommendation=rec_select,
                 )
                 date_str = datetime.datetime.now().strftime("%Y%m%d")
                 filename = f"EquityResearch_{ticker}_{date_str}.pdf"
-
                 st.download_button(
-                    label="⬇ Download PDF Report",
-                    data=pdf_bytes,
-                    file_name=filename,
-                    mime="application/pdf",
-                    key='download_pdf'
+                    label="⬇ Download PDF Report", data=pdf_bytes,
+                    file_name=filename, mime="application/pdf", key='download_pdf'
                 )
                 st.success(f"✓ Report generated: {filename}")
             except Exception as e:
@@ -1011,19 +840,14 @@ def render_pdf_export(info: dict, metrics: dict, ratios: dict, dcf_result: dict,
                 st.code(traceback.format_exc())
 
 
-# ── Main Analysis Engine ─────────────────────────────────────────────────────
 def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
                  terminal_growth: float, forecast_years: int):
-    """Orchestrate full analysis pipeline."""
-
-    # Handle quick picks
     if 'quick_pick' in st.session_state:
         ticker_input = st.session_state.pop('quick_pick')
 
     if not ticker_input:
         return
 
-    # Resolve ticker
     if exchange_hint == 'NSE':
         ticker_symbol = ticker_input.upper().replace('.NS', '') + '.NS'
     elif exchange_hint == 'BSE':
@@ -1031,19 +855,15 @@ def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
     else:
         ticker_symbol, _ = resolve_ticker(ticker_input)
 
-    # Don't re-run if same ticker and same settings
     settings_key = f"{ticker_symbol}_{rev_growth}_{terminal_growth}_{forecast_years}"
-    if (st.session_state.get('last_ticker') == settings_key and
-            st.session_state.get('analysis_done')):
+    if (st.session_state.get('last_ticker') == settings_key and st.session_state.get('analysis_done')):
         return
 
-    # Progress UI
     progress_container = st.empty()
     with progress_container.container():
         st.markdown(f'<div style="color:#c9a84c; font-size:0.85rem; margin-bottom:0.5rem;">Fetching data for <strong>{ticker_symbol}</strong>...</div>', unsafe_allow_html=True)
         prog = st.progress(0)
 
-        # Step 1: Fetch data
         prog.progress(10, text="Fetching market data...")
         data = fetch_company_data(ticker_symbol)
 
@@ -1053,18 +873,15 @@ def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
                 st.error(f"Data Error: {err}")
             return
 
-        # Step 2: Extract financials
         prog.progress(30, text="Processing financial statements...")
         metrics = extract_financials(data)
         if metrics.get('errors'):
             for w in metrics['errors']:
                 st.warning(f"Financial Data: {w}")
 
-        # Step 3: Calculate ratios
         prog.progress(50, text="Calculating financial ratios...")
         ratios = calculate_ratios(metrics, data['info'])
 
-        # Step 4: DCF
         prog.progress(65, text="Building DCF model...")
         wacc_data = estimate_wacc(data['info'], metrics)
         dcf_result = project_fcff(
@@ -1074,12 +891,10 @@ def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
             forecast_years=forecast_years,
         )
 
-        # Step 5: Peers
         prog.progress(80, text="Fetching peer companies...")
         sector = data['info'].get('sector', '')
         industry = data['info'].get('industry', '')
         peer_tickers = get_peer_tickers(data['info'], sector, industry)
-        # Remove self
         peer_tickers = [p for p in peer_tickers if not p.startswith(ticker_input.upper().split('.')[0])]
         peer_df = fetch_peer_data(peer_tickers, data['info'])
 
@@ -1088,7 +903,6 @@ def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
 
     progress_container.empty()
 
-    # Store in session state
     st.session_state['data'] = data
     st.session_state['metrics'] = metrics
     st.session_state['ratios'] = ratios
@@ -1103,14 +917,12 @@ def run_analysis(ticker_input: str, exchange_hint: str, rev_growth: float,
     st.session_state['memo_text'] = ''
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     inject_css()
     init_state()
 
     ticker_input, exchange_hint, analyze_btn, rev_growth, terminal_growth, forecast_years = render_sidebar()
 
-    # Platform masthead
     st.markdown("""
     <div style="display:flex; align-items:baseline; gap:0.75rem; padding: 0.5rem 0 0.5rem 0;">
         <span style="font-size:1.2rem; font-weight:700; color:#c9a84c; letter-spacing:-0.02em;">EQUITY RESEARCH</span>
@@ -1119,28 +931,24 @@ def main():
     <div style="height:1px; background: linear-gradient(90deg, #c9a84c33 0%, #1e2d4a 60%); margin-bottom:1.5rem;"></div>
     """, unsafe_allow_html=True)
 
-    # Handle quick pick or button
     if 'quick_pick' in st.session_state:
         ticker_input = st.session_state['quick_pick']
         analyze_btn = True
 
-    # Auto-run on quick pick or button
     if analyze_btn or 'quick_pick' in st.session_state:
         run_analysis(ticker_input, exchange_hint, rev_growth, terminal_growth, forecast_years)
 
-    # If no analysis done yet, show welcome screen
     if not st.session_state.get('analysis_done'):
         st.markdown("""
         <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;
                     padding: 5rem 2rem; text-align:center;">
             <div style="font-size:3rem; margin-bottom:1rem;">📊</div>
             <div style="font-size:1.4rem; font-weight:700; color:#f0f4ff; margin-bottom:0.5rem;">
-                AI-Assisted Equity Research Platform
+                Aryan's AI Equity Research Platform
             </div>
             <div style="font-size:0.9rem; color:#8b9cb8; max-width:500px; line-height:1.7;">
                 Enter a ticker symbol in the sidebar and click Analyse to generate
-                a complete institutional-grade equity research report including
-                DCF valuation, peer comparables, and AI-assisted investment thesis.
+                a complete institutional-grade equity research report.
             </div>
             <div style="margin-top:2rem; font-size:0.8rem; color:#4a5568;">
                 Supports NSE · BSE · US Tickers<br>
@@ -1150,7 +958,6 @@ def main():
         """, unsafe_allow_html=True)
         return
 
-    # Render results
     data = st.session_state['data']
     metrics = st.session_state['metrics']
     ratios = st.session_state['ratios']
@@ -1159,44 +966,30 @@ def main():
     peer_df = st.session_state['peer_df']
     info = data['info']
 
-    # Display any warnings
     if data.get('warnings'):
         with st.expander("⚠ Data Warnings", expanded=False):
             for w in data['warnings']:
                 st.warning(w)
 
-    # Company header
     render_platform_header(info)
 
-    # Main tabs
     tabs = st.tabs([
-        "📋 Overview",
-        "📈 Financials",
-        "🔢 DCF Valuation",
-        "🔍 Peers",
-        "🤖 AI Research",
-        "📝 Inv. Memo",
-        "📥 PDF Export",
+        "📋 Overview", "📈 Financials", "🔢 DCF Valuation",
+        "🔍 Peers", "🤖 AI Research", "📝 Inv. Memo", "📥 PDF Export",
     ])
 
     with tabs[0]:
         render_overview(info, data.get('history'))
-
     with tabs[1]:
         render_financials(metrics, ratios, info)
-
     with tabs[2]:
         render_dcf(dcf_result, wacc_data, info, metrics)
-
     with tabs[3]:
         render_peers(peer_df, info)
-
     with tabs[4]:
         render_ai_research(info, metrics, ratios)
-
     with tabs[5]:
         render_memo(info, metrics, ratios, dcf_result, peer_df)
-
     with tabs[6]:
         render_pdf_export(info, metrics, ratios, dcf_result, peer_df)
 
