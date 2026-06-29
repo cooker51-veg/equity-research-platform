@@ -60,34 +60,33 @@ def inject_css():
         max-width: 1400px;
     }
 
-    /* ── SIDEBAR: always open, collapse button hidden ── */
     [data-testid="stSidebar"] {
         background: #0c1020 !important;
         border-right: 1px solid #1e2d4a;
-        min-width: 280px !important;
-        max-width: 280px !important;
-        width: 280px !important;
-        transform: translateX(0) !important;
-        visibility: visible !important;
-        display: block !important;
     }
     [data-testid="stSidebar"] .block-container {
         background: #0c1020 !important;
     }
+
     [data-testid="stSidebarCollapseButton"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
+        background: #131c32 !important;
+        border: 1px solid #1e2d4a !important;
+        border-radius: 50% !important;
+        color: #c9a84c !important;
+    }
+    [data-testid="stSidebarCollapseButton"]:hover {
+        background: #1e2d4a !important;
+        border-color: #c9a84c !important;
     }
     [data-testid="collapsedControl"] {
-        display: none !important;
-        visibility: hidden !important;
+        background: #131c32 !important;
+        border: 1px solid #1e2d4a !important;
+        border-radius: 50% !important;
+        color: #c9a84c !important;
     }
-    button[kind="header"] {
-        display: none !important;
-    }
-    section[data-testid="stSidebar"] > div:first-child > div:first-child button {
-        display: none !important;
+    [data-testid="collapsedControl"]:hover {
+        background: #1e2d4a !important;
+        border-color: #c9a84c !important;
     }
 
     #MainMenu {visibility: hidden;}
@@ -922,14 +921,6 @@ def main():
     init_state()
 
     ticker_input, exchange_hint, analyze_btn, rev_growth, terminal_growth, forecast_years = render_sidebar()
-
-    st.markdown("""
-    <div style="display:flex; align-items:baseline; gap:0.75rem; padding: 0.5rem 0 0.5rem 0;">
-        <span style="font-size:1.2rem; font-weight:700; color:#c9a84c; letter-spacing:-0.02em;">EQUITY RESEARCH</span>
-        <span style="font-size:0.75rem; color:#4a5568; letter-spacing:0.12em; text-transform:uppercase;">AI-Assisted Platform</span>
-    </div>
-    <div style="height:1px; background: linear-gradient(90deg, #c9a84c33 0%, #1e2d4a 60%); margin-bottom:1.5rem;"></div>
-    """, unsafe_allow_html=True)
 
     if 'quick_pick' in st.session_state:
         ticker_input = st.session_state['quick_pick']
